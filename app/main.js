@@ -7,11 +7,17 @@ const rl = readline.createInterface({
 
 function prompt() {
   rl.question("$ ", (answer) => {
-    const command = answer.split(" ")[0];
+    const input = answer.split(" ");
+    const command = input.shift();
 
     switch (command) {
       case "exit":
         handleExit(answer);
+      case "echo":
+        const args = input.join(" ");
+        console.log(args);
+        prompt();
+        break;
       default:
         console.log(`${answer}: command not found`);
         prompt();
