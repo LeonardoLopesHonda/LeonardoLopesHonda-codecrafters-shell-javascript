@@ -7,15 +7,24 @@ const rl = readline.createInterface({
 
 function prompt() {
   rl.question("$ ", (answer) => {
+    const builtin = ["exit", "echo", "type"];
     const input = answer.split(" ");
     const command = input.shift();
+    const args = input.join(" ");
 
     switch (command) {
       case "exit":
-        handleExit(answer);
+        handleExit(args);
       case "echo":
-        const args = input.join(" ");
         console.log(args);
+        prompt();
+        break;
+      case "type":
+        if (builtin.includes(args)) {
+          console.log(`${args} is a shell builtin`);
+        } else {
+          console.log(`${args}: not found`);
+        }
         prompt();
         break;
       default:
@@ -28,6 +37,5 @@ function prompt() {
 prompt();
 
 function handleExit(input) {
-  const exitCode = input.split(" ")[1];
-  process.exit(exitCode);
+  input ? process.exit(input) : process.exit(0);
 }
