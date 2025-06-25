@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { delimiter, join } = require("node:path");
+const { delimiter, join, dirname } = require("node:path");
 const { execFileSync, execFile } = require("child_process");
 const fs = require("fs");
 
@@ -10,10 +10,10 @@ const rl = readline.createInterface({
 
 function prompt() {
   rl.question("$ ", (answer) => {
-    const builtin = ["exit", "echo", "type"];
-    const input = answer.split(" ");
-    const command = input.shift().trim();
-    const args = input.join(" ").trim();
+    const builtin = ["exit", "echo", "type", "pwd"];
+    const input = answer.trim().split(" ");
+    const command = input.shift();
+    const args = input;
 
     switch (command) {
       case "":
@@ -24,19 +24,25 @@ function prompt() {
         prompt();
         break;
       case "exit":
-        handleExit(args);
+        handleExit(args.join(" "));
       case "echo":
-        console.log(args);
+        console.log(args.join(" "));
         prompt();
         break;
       case "type":
-        if (builtin.includes(args)) {
-          console.log(`${args} is a shell builtin`);
-        } else if (isCommandValid(args)) {
-          console.log(`${args} is ${findCommandPath(args)}`);
-        } else {
-          console.log(`${args}: not found`);
+        for (let i = 0; i < args.length; i++) {
+          if (builtin.includes(args[i])) {
+            console.log(`${args[i]} is a shell builtin`);
+          } else if (isCommandValid(args[i])) {
+            console.log(`${args[i]} is ${findCommandPath(args[i])}`);
+          } else {
+            console.log(`${args[i]}: not found`);
+          }
         }
+        prompt();
+        break;
+      case "pwd":
+        console.log(dirname(__dirname));
         prompt();
         break;
       default:
@@ -117,10 +123,9 @@ function findCommandPath(command) {
 
 function executeCommand(command, args) {
   let stdout = "";
-
   try {
     if (args) {
-      stdout = execFileSync(command, [args], {
+      stdout = execFileSync(command, args, {
         stdio: "pipe",
         encoding: "utf8",
       });
@@ -135,19 +140,4 @@ function executeCommand(command, args) {
   }
 
   return stdout.trim();
-}
-
-function execLs() {
-  execFile(
-    "ls",
-    {
-      encoding: "utf8",
-    },
-    (error, stdout, stderr) => {
-      if (error) {
-        throw error;
-      }
-      console.log(stdout);
-    }
-  );
 }
